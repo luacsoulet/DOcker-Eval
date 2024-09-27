@@ -1,0 +1,50 @@
+services:
+  nextapp:
+    container_name: nextapp
+    build:
+      context: ./docker_test
+      dockerfile: next.Dockerfile
+    volumes:
+      - ./docker_test/app:/app/app
+      - ./docker_test/public:/app/public
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - next-app
+      - mongodb-app
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    depends_on:
+      - nextapp
+    networks:
+      - mongodb-app
+    
+  mongo-gui:
+    container_name: "mongo-gui"
+    image: ugleiton/mongo-gui
+    restart: always
+    ports:
+      - "4321:4321"
+    environment:
+      - MONGO_URL=mongodb://admin:password@mongodb_container:27017
+    networks:
+      - mongodb-app
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:
+
+networks:
+  next-app:
+  mongodb-app:
